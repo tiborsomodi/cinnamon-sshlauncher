@@ -43,16 +43,16 @@ MyApplet.prototype = {
             this.homeDir = GLib.get_home_dir();
             this.msgSource = new MessageTray.SystemNotificationSource("SSH Launcher");
             Main.messageTray.add(this.msgSource);
-            let file = Gio.file_new_for_path(this.homeDir + "/.ssh/config"); 
-            this.monitor = file.monitor_file(Gio.FileMonitorFlags.NONE, new imports.gi.Gio.Cancellable(), null); 
-            this.monitor.connect("changed", Lang.bind(this, this.updateMenu));			
+            let file = Gio.file_new_for_path(this.homeDir + "/.ssh/config");
+            this.monitor = file.monitor_file(Gio.FileMonitorFlags.NONE, new imports.gi.Gio.Cancellable(), null);
+            this.monitor.connect("changed", Lang.bind(this, this.updateMenu));
             this.updateMenu();
 		}
 		catch (e) {
 			global.logError(e);
 		}
 	},
-	
+
 	updateMenu: function() {
 		this.menu.removeAll();
 		let menuitemHeadless = new PopupMenu.PopupSwitchMenuItem("Background (-fN)");
@@ -61,9 +61,9 @@ MyApplet.prototype = {
 		let menuitemForwardX = new PopupMenu.PopupSwitchMenuItem("Forward X11 (-X)");
 		menuitemForwardX.connect('activate', Lang.bind(this, this.toggleForwardX));
 		this.menu.addMenuItem(menuitemForwardX);
-		
+
 		this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-		
+
 		try {
 			let [res, out, err, status] = GLib.spawn_command_line_sync('grep "^Host " .ssh/config');
 			if(out.length!=0) {
@@ -90,7 +90,7 @@ MyApplet.prototype = {
 		menuitemUpdate.connect('activate', Lang.bind(this, this.updateMenu));
 		this.menu.addMenuItem(menuitemUpdate);
 	},
-	
+
 	connectTo: function(hostname) {
 		let flags = "";
 		if (this.sshHeadless) {
@@ -99,24 +99,24 @@ MyApplet.prototype = {
 		if (this.sshForwardX) {
 			flags = " -X " + flags;
 		}
-		Main.Util.spawnCommandLine("gnome-terminal -x ssh " + flags + hostname);
+		Main.Util.spawnCommandLine("mate-terminal --maximize -x ssh " + flags + hostname);
 		let notification = new MessageTray.Notification(this.msgSource, "SSH Launcher", "Connection opened to " + hostname);
 		notification.setTransient(true);
 		this.msgSource.notify(notification);
 	},
-	
+
 	editConfig: function() {
 		GLib.spawn_command_line_async(this.appletPath + "/launch_editor.sh");
 	},
-	
+
 	on_applet_clicked: function(event) {
 		this.menu.toggle();
 	},
-	
+
 	toggleHeadless: function(event) {
 		this.sshHeadless = event.state;
 	},
-	
+
 	toggleForwardX: function(event) {
 		this.sshForwardX = event.state;
 	}
